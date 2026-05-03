@@ -3,31 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Dashboard de Excel</title>
+    <title>Pro Dashboard | Premium Edition</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
-        body { font-family: sans-serif; margin: 40px; background: #f4f4f9; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        input { margin: 20px 0; }
-        canvas { max-width: 100%; margin-top: 20px; }
+        /* --- ESTILOS CORE DE APPLE (DARK MODE) --- */
+        :root {
+            /* Colores del Sistema Apple Dark */
+            --bg-color: #000000;
+            --card-bg: #1C1C1E; /* Elevación 1 */
+            --input-bg: #2C2C2E; /* Elevación 2 */
+            --primary-text: #FFFFFF;
+            --secondary-text: #8E8E93;
+            --accent-blue: #0A84FF;
+            --separator: #3A3A3C;
+            
+            /* Efectos y Espaciado */
+            --shadow-card: 0 4px 12px rgba(0,0,0,0.4);
+            --shadow-input: 0 2px 4px rgba(0,0,0,0.3);
+            --radius-main: 16px;
+            --radius-elements: 10px;
+        }
+
+        body {
+            /* Tipografía Nativa de Apple */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            background-color: var(--bg-color);
+            color: var(--primary-text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- CONTENEDOR PRINCIPAL --- */
+        .app-container {
+            width: 100%;
+            max-width: 850px;
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: var(--radius-main);
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--separator);
+        }
+
+        /* --- CABECERA --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--separator);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+            color: var(--primary-text);
+            letter-spacing: -0.5px;
+        }
+
+        h1::after {
+            content: " PRO";
+            color: var(--accent-blue);
+            font-size: 12px;
+            vertical-align: super;
+            font-weight: 900;
+        }
+
+        /* --- ÁREA DE CARGA DE ARCHIVO --- */
+        .upload-area {
+            text-align: center;
+            padding: 30px;
+            background-color: var(--input-bg);
+            border-radius: var(--radius-elements);
+            margin-bottom: 30px;
+            border: 2px dashed var(--separator);
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent-blue);
+            background-color: #323236;
+        }
+
+        .upload-label {
+            display: block;
+            margin-bottom: 15px;
+            font-weight: 500;
+            color: var(--primary-text);
+        }
+
+        /* Input de archivo estilizado como botón de Apple */
+        input[type="file"]::file-selector-button {
+            border: none;
+            background: var(--accent-blue);
+            color: white;
+            padding: 10px 20px;
+            border-radius: var(--radius-elements);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            margin-right: 15px;
+            box-shadow: var(--shadow-input);
+            transition: transform 0.1s ease, opacity 0.2s ease;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            opacity: 0.9;
+        }
+
+        input[type="file"]::file-selector-button:active {
+            transform: scale(0.97);
+        }
+
+        input[type="file"] {
+            color: var(--secondary-text);
+            font-size: 13px;
+        }
+
+        /* --- ÁREA DEL GRÁFICO (Canvas) --- */
+        .chart-container {
+            position: relative;
+            background-color: var(--input-bg);
+            padding: 20px;
+            border-radius: var(--radius-elements);
+            border: 1px solid var(--separator);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #myChart {
+            max-width: 100%;
+            height: 400px !important; /* Altura fija para el gráfico */
+        }
+
+        /* Responsive para móviles */
+        @media (max-width: 600px) {
+            .app-container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            #myChart {
+                height: 300px !important;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📊 Dashboard de Excel</h1>
-        <p>Sube tu archivo .xlsx para visualizar los datos:</p>
-        <input type="file" id="upload" accept=".xlsx, .xls">
-        <canvas id="myChart"></canvas>
+    <div class="app-container">
+        <header>
+            <h1>Dashboard</h1>
+            </header>
+
+        <div class="upload-area">
+            <label class="upload-label" for="upload">Importar Datos de Excel</label>
+            <input type="file" id="upload" accept=".xlsx, .xls">
+        </div>
+
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
     </div>
 
     <script>
+        // --- LÓGICA DE JAVASCRIPT (sin cambios en la funcionalidad, solo en el diseño de la gráfica) ---
         document.getElementById('upload').addEventListener('change', function(e) {
+            if (!e.target.files[0]) return;
             const reader = new FileReader();
             reader.onload = function(event) {
                 const data = new Uint8Array(event.target.result);
                 const workbook = XLSX.read(data, {type: 'array'});
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const firstSheetName = workbook.SheetNames[0];
+                const firstSheet = workbook.Sheets[firstSheetName];
                 const jsonData = XLSX.utils.sheet_to_json(firstSheet);
                 
                 renderChart(jsonData);
@@ -41,15 +198,80 @@
 
             const ctx = document.getElementById('myChart').getContext('2d');
             if (window.chartInstance) { window.chartInstance.destroy(); }
+            
+            // --- PERSONALIZACIÓN DEL GRÁFICO (APPLE STYLE) ---
             window.chartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Datos del Excel',
+                        label: 'Valores',
                         data: values,
-                        backgroundColor: 'rgba(54, 162, 235, 0.5)'
+                        
+                        // Diseño de la barra estilo Apple
+                        backgroundColor: function(context) {
+                            const chart = context.chart;
+                            const {ctx, chartArea} = chart;
+                            if (!chartArea) return null;
+                            
+                            // Gradiente sutil
+                            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                            gradient.addColorStop(0, '#0A84FF'); // Apple Accent Blue
+                            gradient.addColorStop(1, 'rgba(10, 132, 255, 0.4)'); // Transparencia
+                            return gradient;
+                        },
+                        
+                        borderColor: '#0A84FF',
+                        borderWidth: 1,
+                        borderRadius: 8, // Barras redondeadas
+                        borderSkipped: false,
+                        
+                        // Efectos de hover
+                        hoverBackgroundColor: '#FFFFFF',
+                        hoverBorderColor: '#FFFFFF'
                     }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }, // Ocultar leyenda para minimalismo
+                        tooltip: {
+                            // Tooltip personalizado estilo Apple
+                            backgroundColor: '#FFFFFF',
+                            titleColor: '#000000',
+                            bodyColor: '#000000',
+                            borderColor: '#000000',
+                            borderWidth: 1,
+                            cornerRadius: 6,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y.toLocaleString(); // Formato de miles
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#3A3A3C', // Separadores Apple
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#8E8E93', // Texto secundario Apple
+                                font: { size: 11 }
+                            }
+                        },
+                        x: {
+                            grid: { display: false }, // Ocultar líneas de cuadrícula X para limpieza
+                            ticks: {
+                                color: '#8E8E93',
+                                font: { size: 11, weight: '500' }
+                            }
+                        }
+                    }
                 }
             });
         }
